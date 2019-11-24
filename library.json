@@ -1,0 +1,12 @@
+{
+    "id": "{42A213E0-C5FB-5667-108B-2A653ED91342}",
+    "author": "Holger Protzek",
+    "name": "espeasy",
+    "url": "https://github.com/hprotzek/symcon-espeasy",
+    "compatibility": {
+        "version": "5.2"
+    },
+    "version": "1.0",
+    "build": 0,
+    "date": 0
+}
