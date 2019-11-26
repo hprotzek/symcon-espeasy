@@ -9,7 +9,8 @@ class EspeasySwitch extends IPSModule {
         $this->RegisterPropertyString('sysname', '');
         $this->RegisterPropertyString('tskname', '');
         $this->RegisterPropertyString('valname', '');
-        $this->RegisterPropertyString('gpio', '');
+        $this->RegisterPropertyString('gpio', '0');
+        $this->RegisterPropertyBoolean('inverted', false);
     }
 
     public function ApplyChanges() {
@@ -17,37 +18,37 @@ class EspeasySwitch extends IPSModule {
 
         $this->ConnectParent('{C6D2AEB3-6E1F-4B2E-8E69-3A1A00246850}');
 
-        //Setze Filter für ReceiveData
-        $sysname = $this->ReadPropertyString('sysname');
-        $tskname = $this->ReadPropertyString('tskname');
-        $valname = $this->ReadPropertyString('valname');
-        $this->SetReceiveDataFilter('.*' . $sysname . '/' . $tskname . '/' . $valname . '.*');
+        if (!empty($this->ReadPropertyString('sysname')) &&
+            !empty($this->ReadPropertyString('tskname')) &&
+            !empty($this->ReadPropertyString('valname'))) {
 
-        $this->RegisterVariableBoolean('EspeasySwitch_State', $this->Translate('State'), '~Switch');
+            $sysname = $this->ReadPropertyString('sysname');
+            $tskname = $this->ReadPropertyString('tskname');
+            $valname = $this->ReadPropertyString('valname');
+            $this->SetReceiveDataFilter('.*' . $sysname . '/' . $tskname . '/' . $valname . '.*');
+        }
+
+        $this->RegisterVariableBoolean('EspeasySwitch_State', 'State', '~Switch');
         $this->EnableAction('EspeasySwitch_State');
     }
 
     public function ReceiveData($JSONString) {
-        $this->SendDebug('JSON', $JSONString, 0);
-        if (!empty($this->ReadPropertyString('sysname')) &&
-            !empty($this->ReadPropertyString('tskname')) &&
-            !empty($this->ReadPropertyString('valname'))) {
-            $data = json_decode($JSONString);
-            $this->SendDebug('State Topic', $data->Topic, 0);
-            $this->SendDebug('State Payload', $data->Payload, 0);
-            SetValue($this->GetIDForIdent('EspeasySwitch_State'), $data->Payload);
-        }
+        $this->SendDebug(__FUNCTION__, $JSONString, 0);
+        $data = json_decode($JSONString);
+        $this->SendDebug(__FUNCTION__ . ' Topic', $data->Topic, 0);
+        $this->SendDebug(__FUNCTION__ . ' Payload', $data->Payload, 0);
+        SetValue($this->GetIDForIdent('EspeasySwitch_State'), $this->getSwitchValue(boolval($data->Payload)));
     }
 
-    public function RequestAction($Ident, $Value) {
-        $this->SendDebug(__FUNCTION__ . ' Value', $Value, 0);
-        $this->SwitchMode($Value);
+    public function RequestAction($Ident, $value) {
+        $this->SendDebug(__FUNCTION__ . ' Value', $value, 0);
+        $this->SwitchMode($value);
     }
 
-    public function SwitchMode(bool $Value) {
+    public function SwitchMode(bool $value) {
         $gpio = $this->ReadPropertyString('gpio');
-        $Topic = $this->ReadPropertyString('sysname') . '/cmd';
-        $this->sendMQTT($Topic, 'GPIO,' . $gpio . ',' . $Value);
+        $topic = $this->ReadPropertyString('sysname') . '/cmd';
+        $this->sendMQTT($topic, 'GPIO,' . $gpio . ',' . intval($value));
     }
 
     protected function sendMQTT($Topic, $Payload) {
@@ -59,8 +60,17 @@ class EspeasySwitch extends IPSModule {
         $Data['Payload'] = $Payload;
 
         $DataJSON = json_encode($Data, JSON_UNESCAPED_SLASHES);
-        $this->SendDebug(__FUNCTION__ . 'Topic', $Data['Topic'], 0);
+        $this->SendDebug(__FUNCTION__ . ' Topic', $Data['Topic'], 0);
+        $this->SendDebug(__FUNCTION__ . ' Payload', $Data['Payload'], 0);
         $this->SendDebug(__FUNCTION__, $DataJSON, 0);
         $this->SendDataToParent($DataJSON);
+    }
+
+    private function getSwitchValue(bool $value) {
+        $inverted = $this->ReadPropertyBoolean('inverted');
+        if ($inverted) {
+            return !$value;
+        }
+        return $value;
     }
 }
