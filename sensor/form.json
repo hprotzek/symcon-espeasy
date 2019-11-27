@@ -1,0 +1,13 @@
+{
+    "elements":
+    [
+        { "type": "ValidationTextBox", "name": "sysname", "caption": "Unit Name" },
+        { "type": "ValidationTextBox", "name": "tskname", "caption": "Task Name" },
+        { "type": "ValidationTextBox", "name": "valname", "caption": "Value Name" }
+    ],
+    "actions": [
+        {
+            "type": "TestCenter"
+        }
+    ]
+}

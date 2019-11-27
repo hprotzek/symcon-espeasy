@@ -1,0 +1,16 @@
+{
+    "id": "{6B5CCE2A-8070-44F0-8DBB-5E7371775BA4}",
+    "name": "EspeasySensor",
+    "type": 3,
+    "vendor": "",
+    "aliases": [],
+    "parentRequirements": [
+        "{043EA491-0325-4ADD-8FC2-A30C8EEB4D3F}"
+    ],
+    "childRequirements": [],
+    "implemented": [
+        "{7F7632D9-FA40-4F38-8DEA-C83CD4325A32}"
+    ],
+    "prefix": "ESPEASY",
+    "url": ""
+}
